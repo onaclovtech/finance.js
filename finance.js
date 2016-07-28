@@ -80,6 +80,40 @@ Finance.prototype.ROI = function(cf0, earnings) {
   return Math.round(roi * 100) / 100;
 };
 
+Finance.prototype.AMTotalInterest = function (principal, rate, period, yearOrMonth) {
+var payment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
+var totalCost = payment * period;
+return totalCost - principal
+}
+/*
+Determining the breakdown of each monthly payment
+Even though the monthly payment is fixed, the amount of money paid to interest varies each month. The remaining amount is used to pay off the loan itself. The complicated formula above ensures that after 360 payments, the mortgage balance will be $0.
+
+For the first payment, we already know the total amount is $1,342.05. To determine how much of that goes toward interest, we multiply the remaining balance ($250,000) by the monthly interest rate: 250,000 x 0.416% = $1,041.67. The rest goes toward the mortgage balance ($1,342.05 - $1,041.67 = $300.39). So after the first payment, the remaining amount on the mortgage is $249,699.61 ($250,000 - $300.39 = $249,699.61).
+
+The second payment's breakdown is similar except the mortgage balance has decreased. So the portion of the payment going toward interest is now slightly less: $1,040.42 ($249,699.61 * 0.416% = $1,040.42).
+*/
+Finance.prototype.AMSchedule = function (principal, rate, period, yearOrMonth, extraPmt) {
+var payment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
+payment = payment + extraPmt
+totalInterest = 0
+schedule = []
+
+for (var i = 0; i < period; i++) {
+    var remaining = -1*((principal * (rate/12/100.0)) - payment);
+    totalInterest += payment - remaining
+    if ((principal - remaining) > 0){
+        principal = principal - remaining
+    }
+    else{
+       
+       break;
+       }
+    schedule.push({"value": principal, "principal": remaining, "interest" : payment - remaining, "payment" : payment});
+    
+}
+return {"total interest": totalInterest, 'schedule' : schedule}
+}
 // Amortization
 Finance.prototype.AM = function (principal, rate, period, yearOrMonth, payAtBeginning) {
   var numerator, denominator, am;
