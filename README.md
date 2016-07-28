@@ -44,3 +44,22 @@ Contributions are welcome to aid in the expansion of the library. In lieu of a f
 
 - Expand library with more financial calculations
 - Include edge cases in testing, if any
+- 
+
+```js
+<html>
+<head>
+<script src="finance.js"></script>
+<script>
+//var finance = Finance();
+var finance = Finance.prototype;
+
+console.log(finance.AMSchedule(204800, 4.5, 360, 1,100))
+console.log(finance.AMSchedule(204800, 4.5, 360, 1, 0))
+
+</script>
+</head>
+<body>
+</body>
+</html>
+```
