@@ -46,6 +46,7 @@ Contributions are welcome to aid in the expansion of the library. In lieu of a f
 - Include edge cases in testing, if any
 - 
 
+# Example Usage
 ```js
 <html>
 <head>
@@ -54,9 +55,16 @@ Contributions are welcome to aid in the expansion of the library. In lieu of a f
 //var finance = Finance();
 var finance = Finance.prototype;
 
-console.log(finance.AMSchedule(204800, 4.5, 360, 1,100))
-console.log(finance.AMSchedule(204800, 4.5, 360, 1, 0))
+//console.log(finance.AMSchedule(204800, 4.5, 360, 1,100))
+//console.log(finance.AMSchedule(204800, 1.75, 360, 1, 0)["total interest"])
+var targetInterest = finance.AMSchedule(204800, 1.75, 360, 1, 0)["total interest"];
+//console.log(finance.AM(204800, 4.5, 360, 1, 0))
+//console.log(finance.AMByInterest(204800, 4.5, 360, 1, targetInterest))
+var targetPayment = finance.AMByInterest(204800, 4.5, 360, 1, targetInterest);
+console.log(targetPayment);
+console.log(targetInterest);
 
+console.log(finance.AMSchedule(204800, 4.5, 360, 1,targetPayment));
 </script>
 </head>
 <body>
