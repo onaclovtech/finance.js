@@ -65,6 +65,14 @@ console.log(targetPayment);
 console.log(targetInterest);
 
 console.log(finance.AMSchedule(204800, 4.5, 360, 1,targetPayment));
+
+var lineData = [];
+for (i=0; i < 1500; i+=100){    
+    lineData.push([i, finance.AMSchedule(204800, 4.5, 360, 1,i)["total interest"]]);
+}
+// Show the distribution of interest as your increase your payment
+console.log(lineData);
+
 </script>
 </head>
 <body>
