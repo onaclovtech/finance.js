@@ -80,6 +80,25 @@ Finance.prototype.ROI = function(cf0, earnings) {
   return Math.round(roi * 100) / 100;
 };
 
+Finance.prototype.AMByInterest = function (principal, rate, period, yearOrMonth, interest) {
+var defaultpayment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
+var stepSize = 100;
+var payment = defaultpayment / 2.0; // First we'll try adding half the payment to each period just to see
+//var oldInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth);
+var newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // get default interest first with our extra payment
+while (Math.abs(newInterest['total interest'] - interest ) > 10){
+    if (newInterest['total interest'] > interest){
+        payment = payment + stepSize;
+        newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // now we apply our extra payment
+    }
+    if (newInterest['total interest'] < interest){
+        payment = payment - (stepSize - 1) /2.0;
+        newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // now we apply our extra payment
+    }
+}
+
+return payment
+}
 Finance.prototype.AMTotalInterest = function (principal, rate, period, yearOrMonth) {
 var payment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
 var totalCost = payment * period;
