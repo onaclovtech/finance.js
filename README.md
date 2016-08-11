@@ -46,7 +46,7 @@ Contributions are welcome to aid in the expansion of the library. In lieu of a f
 - Include edge cases in testing, if any
 - 
 
-# Example Usage
+### Example Usage in Browser
 ```js
 <html>
 <head>
