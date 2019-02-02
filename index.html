@@ -1,0 +1,220 @@
+<html>
+<head>
+<script src="finance.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+</head>
+<body>
+    <div id="myDiv"></div>
+</body>
+<script>
+//var finance = Finance();
+var finance = Finance.prototype;
+var loan_amount = 129340.26-417.0;
+var loan_duration = 180;
+var loan_rate = 6.5;
+//console.log(finance.AMSchedule(loan_amount, 4.5, loan_duration, 1,100))
+//console.log(finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"])
+var targetInterest = finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"];
+//console.log(finance.AM(loan_amount, 4.5, loan_duration, 1, 0))
+//console.log(finance.AMByInterest(loan_amount, 4.5, loan_duration, 1, targetInterest))
+var targetPayment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, targetInterest);
+//console.log(targetPayment);
+//console.log(targetInterest);
+
+//console.log(finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,targetPayment));
+
+var lineData = [];
+var x = [];
+var y = [];
+for (i=0; i < 2000; i+=100){
+    x.push(i);
+    y.push(finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,i)["total interest"]);
+    
+    lineData.push([i, finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,i)["total interest"]]);
+}
+// Show the distribution of interest as your increase your payment
+//console.log(lineData);
+var trace1 = {
+  x: x,
+  y: y,
+  type: 'scatter',
+};
+
+colors = ['rgb(171, 171, 171)', 'rgb(0, 171, 171)', 'rgb(171, 0, 171)', 'rgb(171, 171, 0)', 'rgb(10, 171, 171)', 'rgb(171, 10, 171)', 'rgb(171, 171, 10)']
+all_rates = []
+all_annotations = []
+for (i=3.0, j=0; i<=loan_rate; i+= .25, j+=1){
+    tmp_payment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, i, loan_duration, 1, 0)["total interest"]);
+    tmp_interest = finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,tmp_payment)["total interest"]
+    all_rates.push(    {
+      type: 'line',
+      x0: tmp_payment,
+      y0: 0,
+      x1: tmp_payment,
+      y1: tmp_interest,
+      line: {
+        color: colors[j],
+        width: 4
+      }
+    });
+    all_annotations.push({
+      x: tmp_payment,
+      y: tmp_interest,
+      xref: 'x',
+      yref: 'y',
+      text: i,
+      showarrow: true,
+      arrowhead: 7,
+      ax: 0,
+      ay: -40
+    })
+    
+}
+
+var layout = {
+    title: {
+    text:'Effective Interest Rates for $' + loan_amount + " loan",
+    font: {
+      family: 'Courier New, monospace',
+      size: 24
+    },
+    xref: 'paper',
+    x: 0.05,
+  },
+  xaxis: {
+    title: {
+      text: 'Amount Extra Paid in $ per month for ' + loan_duration + ' Months',
+      font: {
+        family: 'Courier New, monospace',
+        size: 18,
+        color: '#7f7f7f'
+      }
+    },
+  },
+  yaxis: {
+    title: {
+      text: 'Total Interest in $',
+      font: {
+        family: 'Courier New, monospace',
+        size: 18,
+        color: '#7f7f7f'
+      }
+    }
+  },annotations: all_annotations,
+  shapes : all_rates
+  /*
+  [
+    {
+      x: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.8),
+      y: y[0],
+      xref: 'x',
+      yref: 'y',
+      text: '80%',
+      showarrow: true,
+      arrowhead: 7,
+      ax: 0,
+      ay: -40
+    },
+    {
+      x: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.5),
+      y: y[0],
+      xref: 'x',
+      yref: 'y',
+      text: '50%',
+      showarrow: true,
+      arrowhead: 7,
+      ax: 0,
+      ay: -40
+    },
+    {
+      x: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.2),
+      y: y[0],
+      xref: 'x',
+      yref: 'y',
+      text: '20%',
+      showarrow: true,
+      arrowhead: 7,
+      ax: 0,
+      ay: -40
+    }],
+    shapes: [
+
+    //line vertical
+
+    //Line Vertical 80% of the interest.
+    {
+      type: 'line',
+      name: 'test',
+      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.8),
+      y0: 0,
+      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.8),
+      y1: y[0],
+      line: {
+        color: 'rgb(50, 171, 96)',
+        width: 4
+      }
+    },
+    {
+      type: 'line',
+      name: 'test',
+      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.5),
+      y0: 0,
+      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.5),
+      y1: y[0],
+      line: {
+        color: 'rgb(20, 171, 96)',
+        width: 1
+      }
+    },
+//    var targetPayment = ;
+    {
+      type: 'line',
+      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.2),
+      y0: 0,
+      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.2),
+      y1: y[0],
+      line: {
+        color: 'rgb(171, 171, 96)',
+        width: 4
+      }
+    },
+    {
+      type: 'line',
+      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"]),
+      y0: 0,
+      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"]),
+      y1: y[0],
+      line: {
+        color: 'rgb(171, 171, 171)',
+        width: 4
+      }
+    },
+        {
+      type: 'line',
+      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 4.5, loan_duration, 1, 0)["total interest"]),
+      y0: 0,
+      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 4.5, loan_duration, 1, 0)["total interest"]),
+      y1: y[0],
+      line: {
+        color: 'rgb(40, 40, 40)',
+        width: 4
+      }
+    }
+
+    ]*/
+    }
+
+//var trace2 = {
+ // x: [1, 2, 3, 4],
+ // y: [16, 5, 11, 9],
+ // type: 'scatter'
+//};
+
+var data = [trace1];
+
+Plotly.newPlot('myDiv', data, layout);
+
+
+</script>
+</html>
