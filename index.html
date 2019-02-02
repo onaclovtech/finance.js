@@ -6,6 +6,7 @@
 </head>
 <body>
     <div id="myDiv"></div>
+    <div id="tablePrint"> </div>
 </body>
 <script>
 //var finance = Finance();
@@ -41,26 +42,30 @@ var trace1 = {
   type: 'scatter',
 };
 
-colors = ['rgb(171, 171, 171)', 'rgb(0, 171, 171)', 'rgb(171, 0, 171)', 'rgb(171, 171, 0)', 'rgb(10, 171, 171)', 'rgb(171, 10, 171)', 'rgb(171, 171, 10)']
+
 all_rates = []
 all_annotations = []
-for (i=3.0, j=0; i<=loan_rate; i+= .25, j+=1){
+rate_interest_pairs = []
+all_rates = []
+
+for (i=3.0, j=0; i<loan_rate; i+= .25, j+=1){
     tmp_payment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, i, loan_duration, 1, 0)["total interest"]);
-    tmp_interest = finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,tmp_payment)["total interest"]
+    tmp_interest = finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,tmp_payment)
+    console.log(tmp_interest);
     all_rates.push(    {
       type: 'line',
       x0: tmp_payment,
       y0: 0,
       x1: tmp_payment,
-      y1: tmp_interest,
+      y1: tmp_interest["total interest"],
       line: {
-        color: colors[j],
+        color: 'rgb(' + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + ","+ Math.floor(Math.random() * 256) + ")",
         width: 4
       }
     });
     all_annotations.push({
       x: tmp_payment,
-      y: tmp_interest,
+      y: tmp_interest["total interest"],
       xref: 'x',
       yref: 'y',
       text: i,
@@ -69,9 +74,10 @@ for (i=3.0, j=0; i<=loan_rate; i+= .25, j+=1){
       ax: 0,
       ay: -40
     })
+    rate_interest_pairs.push([tmp_payment, tmp_interest["total interest"], i, tmp_interest["duration"]])
     
 }
-
+rate_interest_pairs.push([0, y[0], 6.5, loan_duration])
 var layout = {
     title: {
     text:'Effective Interest Rates for $' + loan_amount + " loan",
@@ -103,118 +109,34 @@ var layout = {
     }
   },annotations: all_annotations,
   shapes : all_rates
-  /*
-  [
-    {
-      x: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.8),
-      y: y[0],
-      xref: 'x',
-      yref: 'y',
-      text: '80%',
-      showarrow: true,
-      arrowhead: 7,
-      ax: 0,
-      ay: -40
-    },
-    {
-      x: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.5),
-      y: y[0],
-      xref: 'x',
-      yref: 'y',
-      text: '50%',
-      showarrow: true,
-      arrowhead: 7,
-      ax: 0,
-      ay: -40
-    },
-    {
-      x: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.2),
-      y: y[0],
-      xref: 'x',
-      yref: 'y',
-      text: '20%',
-      showarrow: true,
-      arrowhead: 7,
-      ax: 0,
-      ay: -40
-    }],
-    shapes: [
-
-    //line vertical
-
-    //Line Vertical 80% of the interest.
-    {
-      type: 'line',
-      name: 'test',
-      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.8),
-      y0: 0,
-      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.8),
-      y1: y[0],
-      line: {
-        color: 'rgb(50, 171, 96)',
-        width: 4
-      }
-    },
-    {
-      type: 'line',
-      name: 'test',
-      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.5),
-      y0: 0,
-      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.5),
-      y1: y[0],
-      line: {
-        color: 'rgb(20, 171, 96)',
-        width: 1
-      }
-    },
-//    var targetPayment = ;
-    {
-      type: 'line',
-      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.2),
-      y0: 0,
-      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, y[0]*.2),
-      y1: y[0],
-      line: {
-        color: 'rgb(171, 171, 96)',
-        width: 4
-      }
-    },
-    {
-      type: 'line',
-      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"]),
-      y0: 0,
-      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"]),
-      y1: y[0],
-      line: {
-        color: 'rgb(171, 171, 171)',
-        width: 4
-      }
-    },
-        {
-      type: 'line',
-      x0: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 4.5, loan_duration, 1, 0)["total interest"]),
-      y0: 0,
-      x1: finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, 4.5, loan_duration, 1, 0)["total interest"]),
-      y1: y[0],
-      line: {
-        color: 'rgb(40, 40, 40)',
-        width: 4
-      }
+  
     }
-
-    ]*/
-    }
-
-//var trace2 = {
- // x: [1, 2, 3, 4],
- // y: [16, 5, 11, 9],
- // type: 'scatter'
-//};
 
 var data = [trace1];
 
 Plotly.newPlot('myDiv', data, layout);
 
 
+
+    var myTable= "<table><tr><td style='width: 100px; color: red;'>Additional Payment</td>";
+    myTable+= "<td style='width: 100px; color: red; text-align: right;'>Total Interest on Loan</td>";
+    myTable+= "<td style='width: 100px; color: red; text-align: right;'>Effective Interest Rate</td>";
+    myTable+= "<td style='width: 100px; color: red; text-align: right;'>Loan Duration (Months)</td>";
+    myTable+= "<td style='width: 100px; color: red; text-align: right;'>Loan Duration (Years)</td></tr>";
+
+  for (var i=0; i<rate_interest_pairs.length; i++) {
+    myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][0].toFixed(2) + "</td>";
+    myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][1].toFixed(2) + "</td>";
+    myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][2].toFixed(2) + "</td>";
+    myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][3].toFixed(2) + "</td>";
+    myTable+="<td style='width: 100px; text-align: right;'>" + (rate_interest_pairs[i][3]/12.).toFixed(2) + "</td></tr>";
+  }
+   myTable+="</table>";
+
+ 
+document.getElementById('tablePrint').innerHTML = myTable;
+
+
 </script>
+
 </html>
