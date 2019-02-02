@@ -1,6 +1,7 @@
 //Finance.js
 //For more information, visit http://financejs.org
 //Copyright 2014 - 2015 Essam Al Joubori, MIT license
+// Modified by Tyson Bailey various times as recent as 2019
 
 // Instantiate a Finance class
 var Finance = function() {};
@@ -41,7 +42,7 @@ function seekZero(fn) {
 }
 
 // Internal Rate of Return (IRR)
-Finance.prototype.IRR = function(cfs) { 
+Finance.prototype.IRR = function(cfs) {
   var args = arguments;
   function npv(rate) {
     var rrate = (1 + rate/100);
@@ -62,7 +63,7 @@ Finance.prototype.PP = function(numOfPeriods, cfs) {
   }
   // for uneven cash flows
   var cumulativeCashFlow = arguments[1];
-  var yearsCounter = 1;  
+  var yearsCounter = 1;
   for (i = 2; i < arguments.length; i++) {
     cumulativeCashFlow += arguments[i];
     if (cumulativeCashFlow > 0) {
@@ -74,7 +75,7 @@ Finance.prototype.PP = function(numOfPeriods, cfs) {
   }
 };
 
-// Return on Investment (ROI)  
+// Return on Investment (ROI)
 Finance.prototype.ROI = function(cf0, earnings) {
   var roi = (earnings - Math.abs(cf0)) / Math.abs(cf0) * 100;
   return Math.round(roi * 100) / 100;
@@ -86,15 +87,17 @@ var stepSize = 100;
 var payment = defaultpayment / 2.0; // First we'll try adding half the payment to each period just to see
 //var oldInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth);
 var newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // get default interest first with our extra payment
-while (Math.abs(newInterest['total interest'] - interest ) > 10){
+while (Math.abs(newInterest['total interest'] - interest ) > 100){
+    //console.log(newInterest['total interest'], interest, stepSize);
     if (newInterest['total interest'] > interest){
-        payment = payment + stepSize;
+        payment = payment + (stepSize /2.0);
         newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // now we apply our extra payment
     }
     if (newInterest['total interest'] < interest){
-        payment = payment - (stepSize - 1) /2.0;
+        payment = payment - (stepSize /2.0);
         newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // now we apply our extra payment
     }
+    stepSize *= .9995;
 }
 
 return payment
@@ -169,7 +172,7 @@ Finance.prototype.PI = function(rate, cfs){
   for (var i = 2; i < arguments.length; i++) {
     var discountFactor;
     // calculate discount factor
-    discountFactor = 1 / Math.pow((1 + rate/100), (i - 1)); 
+    discountFactor = 1 / Math.pow((1 + rate/100), (i - 1));
     totalOfPVs += arguments[i] * discountFactor;
   }
   PI = totalOfPVs/Math.abs(arguments[1]);
