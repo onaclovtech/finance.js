@@ -5,15 +5,26 @@
 
 </head>
 <body>
-    <div id="myDiv"></div>
+<label>Amount</label><input id="inputAmount" name="amount" value="200000"/>
+<label>Rate</label><input id="inputRate" name="rate" value="4.5"/>
+<label>Months</label><input id="inputMonths" name="months" value="360"/>
+<input id="clickMe" type="button" value="Plot" onclick="doFunction();" />
+<div id="myDiv"></div>
     <div id="tablePrint"> </div>
 </body>
 <script>
 //var finance = Finance();
 var finance = Finance.prototype;
-var loan_amount = 129340.26-417.0;
-var loan_duration = 180;
-var loan_rate = 6.5;
+
+
+//console.log(finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,targetPayment));
+var doFunction = function(){
+    document.getElementById('myDiv').innerHTML = "";
+    document.getElementById('tablePrint').innerHTML = "";
+var loan_amount = document.getElementById("inputAmount").value;// 204800// 129340.26-417.0;
+
+var loan_duration = document.getElementById("inputMonths").value; //180;
+var loan_rate = document.getElementById("inputRate").value;
 //console.log(finance.AMSchedule(loan_amount, 4.5, loan_duration, 1,100))
 //console.log(finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"])
 var targetInterest = finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"];
@@ -22,13 +33,10 @@ var targetInterest = finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)[
 var targetPayment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, targetInterest);
 //console.log(targetPayment);
 //console.log(targetInterest);
-
-//console.log(finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,targetPayment));
-
 var lineData = [];
 var x = [];
 var y = [];
-for (i=0; i < 2000; i+=100){
+for (i=0; i <= 2000; i+=100){
     x.push(i);
     y.push(finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,i)["total interest"]);
     
@@ -48,7 +56,7 @@ all_annotations = []
 rate_interest_pairs = []
 all_rates = []
 
-for (i=3.0, j=0; i<loan_rate; i+= .25, j+=1){
+for (i=1.75, j=0; i<loan_rate; i+= .25, j+=1){
     tmp_payment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, i, loan_duration, 1, 0)["total interest"]);
     tmp_interest = finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,tmp_payment)
     console.log(tmp_interest);
@@ -128,7 +136,8 @@ Plotly.newPlot('myDiv', data, layout);
     myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][0].toFixed(2) + "</td>";
     myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][1].toFixed(2) + "</td>";
     myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][2].toFixed(2) + "</td>";
-    myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][3].toFixed(2) + "</td>";
+    console.log(rate_interest_pairs[i][3]);
+    myTable+="<td style='width: 100px; text-align: right;'>" + parseInt(rate_interest_pairs[i][3]) + "</td>";
     myTable+="<td style='width: 100px; text-align: right;'>" + (rate_interest_pairs[i][3]/12.).toFixed(2) + "</td></tr>";
   }
    myTable+="</table>";
@@ -136,7 +145,8 @@ Plotly.newPlot('myDiv', data, layout);
  
 document.getElementById('tablePrint').innerHTML = myTable;
 
-
+}
+doFunction();
 </script>
 
 </html>
