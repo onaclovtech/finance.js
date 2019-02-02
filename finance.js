@@ -81,6 +81,7 @@ Finance.prototype.ROI = function(cf0, earnings) {
   return Math.round(roi * 100) / 100;
 };
 
+// Figures out what payment is required (extra) to achieve a target interest rate
 Finance.prototype.AMByInterest = function (principal, rate, period, yearOrMonth, interest) {
 var defaultpayment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
 var stepSize = 100;
@@ -134,7 +135,7 @@ for (var i = 0; i < period; i++) {
     schedule.push({"value": principal, "principal": remaining, "interest" : payment - remaining, "payment" : payment});
     
 }
-return {"total interest": totalInterest, 'schedule' : schedule}
+return {"total interest": totalInterest, 'schedule' : schedule, 'duration' : schedule.length}
 }
 // Amortization
 Finance.prototype.AM = function (principal, rate, period, yearOrMonth, payAtBeginning) {
