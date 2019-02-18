@@ -8,42 +8,41 @@
 <label>Amount</label><input id="inputAmount" name="amount" value="200000"/>
 <label>Rate</label><input id="inputRate" name="rate" value="4.5"/>
 <label>Months</label><input id="inputMonths" name="months" value="360"/>
+<label>Starting Year</label><input id="inputYear" name="months" value="2008"/>
 <input id="clickMe" type="button" value="Plot" onclick="doFunction();" />
 <div id="myDiv"></div>
-    <div id="tablePrint"> </div>
+    <div id="tablePrint"> </div> <br />
+    <div id="inflation"></div>
+    * Unknown inflation rates for years past the last known just carry over (for better or worse)
+    < br/>
+    What the above chart tells us is that if you factor in 1% maintenance costs (and this calculation is likely off somewhat due to how I'm factoring the 1% in) the total value of the home much reach this value to break even in terms of how much you paid vs how much the house cost (plus maintenance) factoring in inflation
 </body>
 <script>
 //var finance = Finance();
 var finance = Finance.prototype;
-
-
-//console.log(finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,targetPayment));
 var doFunction = function(){
     document.getElementById('myDiv').innerHTML = "";
     document.getElementById('tablePrint').innerHTML = "";
 var loan_amount = document.getElementById("inputAmount").value;// 204800// 129340.26-417.0;
-
+var lower_loan_rate = 1.5;
 var loan_duration = document.getElementById("inputMonths").value; //180;
 var loan_rate = document.getElementById("inputRate").value;
-//console.log(finance.AMSchedule(loan_amount, 4.5, loan_duration, 1,100))
-//console.log(finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"])
+var start_year = document.getElementById("inputYear").value;
 var targetInterest = finance.AMSchedule(loan_amount, 1.75, loan_duration, 1, 0)["total interest"];
-//console.log(finance.AM(loan_amount, 4.5, loan_duration, 1, 0))
-//console.log(finance.AMByInterest(loan_amount, 4.5, loan_duration, 1, targetInterest))
 var targetPayment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1, targetInterest);
-//console.log(targetPayment);
-//console.log(targetInterest);
+
 var lineData = [];
 var x = [];
 var y = [];
-for (i=0; i <= 2000; i+=100){
+tmp_payment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, lower_loan_rate, loan_duration, 1, 0)["total interest"])
+range = Math.ceil(tmp_payment/100)*100;
+for (i=0; i <= range; i+=100){
     x.push(i);
     y.push(finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,i)["total interest"]);
     
     lineData.push([i, finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,i)["total interest"]]);
 }
 // Show the distribution of interest as your increase your payment
-//console.log(lineData);
 var trace1 = {
   x: x,
   y: y,
@@ -56,10 +55,9 @@ all_annotations = []
 rate_interest_pairs = []
 all_rates = []
 
-for (i=1.75, j=0; i<loan_rate; i+= .25, j+=1){
+for (i=lower_loan_rate, j=0; i<loan_rate; i+= .25, j+=1){
     tmp_payment = finance.AMByInterest(loan_amount, loan_rate, loan_duration, 1,finance.AMSchedule(loan_amount, i, loan_duration, 1, 0)["total interest"]);
     tmp_interest = finance.AMSchedule(loan_amount, loan_rate, loan_duration, 1,tmp_payment)
-    console.log(tmp_interest);
     all_rates.push(    {
       type: 'line',
       x0: tmp_payment,
@@ -85,7 +83,30 @@ for (i=1.75, j=0; i<loan_rate; i+= .25, j+=1){
     rate_interest_pairs.push([tmp_payment, tmp_interest["total interest"], i, tmp_interest["duration"]])
     
 }
-rate_interest_pairs.push([0, y[0], 6.5, loan_duration])
+all_rates.push(    {
+      type: 'line',
+      x0: 0,
+      y0: 0,
+      x1: 0,
+      y1: y[0],
+      line: {
+        color: 'rgb(' + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + ","+ Math.floor(Math.random() * 256) + ")",
+        width: 4
+      }
+    });
+    all_annotations.push({
+      x: 0,
+      y: y[0],
+      xref: 'x',
+      yref: 'y',
+      text: loan_rate,
+      showarrow: true,
+      arrowhead: 7,
+      ax: 0,
+      ay: -40
+    })
+    
+rate_interest_pairs.push([0, y[0], loan_rate, loan_duration])
 var layout = {
     title: {
     text:'Effective Interest Rates for $' + loan_amount + " loan",
@@ -125,6 +146,115 @@ var data = [trace1];
 Plotly.newPlot('myDiv', data, layout);
 
 
+year = [start_year]
+rate = [loan_amount]
+inflation = finance.Inflation();
+start_tracking = false;
+start_index = 0;
+for (i=0; i<inflation.length; i+= 1){
+    if (start_year == inflation[i][0]){
+        start_index = i+1; // we start factoring inflation the following year
+        break;
+    }
+
+}
+counter_rate = [loan_amount]
+one_percent = [loan_amount]
+for (i=0; i<=(loan_duration/12.); i+= 1){
+    if (i+start_index < inflation.length){
+        offset = i+start_index;
+    }
+    else{
+        offset = inflation.length-1;
+    }
+    year.push(String(parseInt(start_year) + i));
+    rate.push(rate[rate.length-1] * (1+(inflation[offset][1]/100)));
+    counter_rate.push(counter_rate[counter_rate.length-1] * (1-(inflation[offset][1]/100)));
+    one_percent.push((one_percent[one_percent.length-1] * (1+(inflation[offset][1]/100))) + (loan_amount*.01))
+}
+
+var trace2 = {
+  x: year,
+  y: rate,
+  type: 'scatter',
+  name: "Projected Value"
+};
+var trace3 = {
+  x: year,
+  y: counter_rate,
+  type: 'scatter',
+  name: "Static Value"
+};
+var trace4 = {
+  x: year,
+  y: one_percent,
+  type: 'scatter',
+  name: "Projected Value plus 1% maintenance offset"
+};
+
+console.log(year[0]);
+
+console.log(finance.TimeToGo(128921.18, 6.5, 335.74+698.32))
+
+
+// Attempt 1 year of extra payments.
+lower_principal_higher_rate_lower_duration_new_interest = finance.ExtraPmtByDuration(128921.18, 6.5, 209, 1, 1000, 0, 12);
+lower_principal_higher_rate_lower_duration_base_interest = finance.AMSchedule(128921.18, 6.5, 209, 1, 0);
+// Attempt 1 year of extra payments but on a larger loan with lower rate and .
+higher_principal_lower_rate_higher_duration_new_interest = finance.ExtraPmtByDuration(191000, 4.5, 310, 1, 1000, 0, 12);
+higher_principal_lower_rate_higher_duration_base_interest = finance.AMSchedule(191000, 4.5, 310, 1, 0);
+
+
+console.log(lower_principal_higher_rate_lower_duration_new_interest, lower_principal_higher_rate_lower_duration_base_interest, lower_principal_higher_rate_lower_duration_base_interest["total interest"] - lower_principal_higher_rate_lower_duration_new_interest["total interest"]);
+
+console.log(higher_principal_lower_rate_higher_duration_new_interest, higher_principal_lower_rate_higher_duration_base_interest, higher_principal_lower_rate_higher_duration_base_interest["total interest"]-higher_principal_lower_rate_higher_duration_new_interest["total interest"]);
+console.log((higher_principal_lower_rate_higher_duration_base_interest["total interest"]-higher_principal_lower_rate_higher_duration_new_interest["total interest"]) -(lower_principal_higher_rate_lower_duration_base_interest["total interest"] - lower_principal_higher_rate_lower_duration_new_interest["total interest"]));
+// The result of above should be that the total interest will be quite different
+
+// Now lets just say we can pay off 1000 a month for every month on the shorter but higher interest rate loan duration.
+// Try the same calcs but say the same number of months for the other one.
+lower_principal_higher_rate_lower_duration_new_interest = finance.AMSchedule(128921.18, 6.5, 209, 1, 1000);
+higher_principal_lower_rate_higher_duration_new_interest = finance.ExtraPmtByDuration(128921.18, 4.5, 310, 1, 1000, 0, 209);
+// ok so take the original interest you'd pay, subtract the new interst, that's savings.
+console.log(lower_principal_higher_rate_lower_duration_base_interest["total interest"] - lower_principal_higher_rate_lower_duration_new_interest["total interest"], higher_principal_lower_rate_higher_duration_base_interest["total interest"]- higher_principal_lower_rate_higher_duration_new_interest["total interest"]);
+
+
+var history = [trace2, trace4];
+
+var layout = {
+    title: {
+    text:'Value of home starting with year ' + start_year + " Adjusting for inflation only",
+    font: {
+      family: 'Courier New, monospace',
+      size: 24
+    },
+    xref: 'paper',
+    x: 0.05,
+  },
+  xaxis: {
+    title: {
+      text: 'Year',
+      font: {
+        family: 'Courier New, monospace',
+        size: 18,
+        color: '#7f7f7f'
+      }
+    },
+  },
+  yaxis: {
+    title: {
+      text: 'Value',
+      font: {
+        family: 'Courier New, monospace',
+        size: 18,
+        color: '#7f7f7f'
+      }
+    }
+  }
+}
+Plotly.newPlot('inflation', history, layout);
+
+
 
     var myTable= "<table><tr><td style='width: 100px; color: red;'>Additional Payment</td>";
     myTable+= "<td style='width: 100px; color: red; text-align: right;'>Total Interest on Loan</td>";
@@ -135,8 +265,7 @@ Plotly.newPlot('myDiv', data, layout);
   for (var i=0; i<rate_interest_pairs.length; i++) {
     myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][0].toFixed(2) + "</td>";
     myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][1].toFixed(2) + "</td>";
-    myTable+="<td style='width: 100px; text-align: right;'>" + rate_interest_pairs[i][2].toFixed(2) + "</td>";
-    console.log(rate_interest_pairs[i][3]);
+    myTable+="<td style='width: 100px; text-align: right;'>" + parseFloat(rate_interest_pairs[i][2]).toFixed(2) + "</td>";
     myTable+="<td style='width: 100px; text-align: right;'>" + parseInt(rate_interest_pairs[i][3]) + "</td>";
     myTable+="<td style='width: 100px; text-align: right;'>" + (rate_interest_pairs[i][3]/12.).toFixed(2) + "</td></tr>";
   }
