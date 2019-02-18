@@ -6,6 +6,104 @@
 // Instantiate a Finance class
 var Finance = function() {};
 
+Finance.prototype.Inflation= function(){
+    // from https://www.thebalance.com/u-s-inflation-rate-history-by-year-and-forecast-3306093
+var pairs =
+[["1929","0.60"],
+["1930","-6.40"],
+["1931","-9.30"],
+["1932","-10.30"],
+["1933","0.80"],
+["1934","1.50"],
+["1935","3.00"],
+["1936","1.40"],
+["1937","2.90"],
+["1938","-2.80"],
+["1939","0.00"],
+["1940","0.70"],
+["1941","9.90"],
+["1942","9.00"],
+["1943","3.00"],
+["1944","2.30"],
+["1945","2.20"],
+["1946","18.10"],
+["1947","8.80"],
+["1948","3.00"],
+["1949","-2.10"],
+["1950","5.90"],
+["1951","6.00"],
+["1952","0.80"],
+["1953","0.70"],
+["1954","-0.70"],
+["1955","0.40"],
+["1956","3.00"],
+["1957","2.90"],
+["1958","1.80"],
+["1959","1.70"],
+["1960","1.40"],
+["1961","0.70"],
+["1962","1.30"],
+["1963","1.60"],
+["1964","1.00"],
+["1965","1.90"],
+["1966","3.50"],
+["1967","3.00"],
+["1968","4.70"],
+["1969","6.20"],
+["1970","5.60"],
+["1971","3.30"],
+["1972","3.40"],
+["1973","8.70"],
+["1974","12.30"],
+["1975","6.90"],
+["1976","4.90"],
+["1977","6.70"],
+["1978","9.00"],
+["1979","13.30"],
+["1980","12.50"],
+["1981","8.90"],
+["1982","3.80"],
+["1983","3.80"],
+["1984","3.90"],
+["1985","3.80"],
+["1986","1.10"],
+["1987","4.40"],
+["1988","4.40"],
+["1989","4.60"],
+["1990","6.10"],
+["1991","3.10"],
+["1992","2.90"],
+["1993","2.70"],
+["1994","2.70"],
+["1995","2.50"],
+["1996","3.30"],
+["1997","1.70"],
+["1998","1.60"],
+["1999","2.70"],
+["2000","3.40"],
+["2001","1.60"],
+["2002","2.40"],
+["2003","1.90"],
+["2004","3.30"],
+["2005","3.40"],
+["2006","2.50"],
+["2007","4.10"],
+["2008","0.10"],
+["2009","2.70"],
+["2010","1.50"],
+["2011","3.00"],
+["2012","1.70"],
+["2013","1.50"],
+["2014","0.80"],
+["2015","0.70"],
+["2016","2.10"],
+["2017","2.10"],
+["2018","1.90"],
+["2019","1.90"],
+["2020","2.10"],
+["2021","2.10"]]
+return pairs
+}
 // Present Value (PV)
 Finance.prototype.PV = function (rate, cf1) {
   var rate = rate/100, pv;
@@ -89,7 +187,7 @@ var payment = defaultpayment / 2.0; // First we'll try adding half the payment t
 //var oldInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth);
 var newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // get default interest first with our extra payment
 while (Math.abs(newInterest['total interest'] - interest ) > 100){
-    //console.log(newInterest['total interest'], interest, stepSize);
+    
     if (newInterest['total interest'] > interest){
         payment = payment + (stepSize /2.0);
         newInterest = Finance.prototype.AMSchedule(principal, rate, period, yearOrMonth, payment); // now we apply our extra payment
@@ -103,11 +201,13 @@ while (Math.abs(newInterest['total interest'] - interest ) > 100){
 
 return payment
 }
+
 Finance.prototype.AMTotalInterest = function (principal, rate, period, yearOrMonth) {
-var payment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
-var totalCost = payment * period;
-return totalCost - principal
+    var payment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
+    var totalCost = payment * period;
+    return totalCost - principal
 }
+
 /*
 Determining the breakdown of each monthly payment
 Even though the monthly payment is fixed, the amount of money paid to interest varies each month. The remaining amount is used to pay off the loan itself. The complicated formula above ensures that after 360 payments, the mortgage balance will be $0.
@@ -137,6 +237,46 @@ for (var i = 0; i < period; i++) {
 }
 return {"total interest": totalInterest, 'schedule' : schedule, 'duration' : schedule.length}
 }
+
+Finance.prototype.FindSplit = function (principal, rate, period, yearOrMonth, extraPmt) {
+    // The intent of this function (unfinished), was to compare two loans
+    // and find a "optimal" split, basically, what makes sense to spend on each loan extra
+    // given a set amount extra to spend on the loans. For example does spending $200 on one loan
+    // and $400 on a second loan make more sense, or all to one loan?
+    // need to figure it out.
+    console.log('huh');
+    return 0;
+}
+
+Finance.prototype.ExtraPmtByDuration = function (principal, rate, period, yearOrMonth, extraPmt, fromMonth, toMonth){
+var normalpayment = Finance.prototype.AM(principal, rate, period, yearOrMonth);
+//payment = payment + extraPmt
+totalInterest = 0
+schedule = []
+
+for (var i = 0; i < period; i++) {
+    if (i >= fromMonth && i <= toMonth){
+        payment = normalpayment + extraPmt;
+    }
+    else{
+        payment = normalpayment
+    }
+    var remaining = -1*((principal * (rate/12/100.0)) - payment);
+    totalInterest += payment - remaining
+    if ((principal - remaining) > 0){
+        principal = principal - remaining
+    }
+    else{
+       
+       break;
+       }
+    schedule.push({"value": principal, "principal": remaining, "interest" : payment - remaining, "payment" : payment});
+    
+}
+return {"total interest": totalInterest, 'schedule' : schedule, 'duration' : schedule.length}
+
+}
+
 // Amortization
 Finance.prototype.AM = function (principal, rate, period, yearOrMonth, payAtBeginning) {
   var numerator, denominator, am;
@@ -225,6 +365,50 @@ Finance.prototype.WACC = function(marketValueOfEquity, marketValueOfDebt, costOf
   var WACC = ((E / V) * Re/100) + (((D / V) * Rd/100) * (1 - T/100));
   return Math.round(WACC * 1000) / 10;
 };
+
+Finance.prototype.GetBasePaid = function(principal, rate, period){
+ total =  Finance.prototype.AMSchedule(principal, rate, period, 1,0)
+ total_paid = 0;
+ for (i=0; i<total["schedule"].length; i++){
+     total_paid += total["schedule"][i]["principal"]
+ }
+ return total_paid
+}
+Finance.prototype.TimeToGo = function(balance, rate, payment){
+    // Example Usage
+    // finance.MonthsToGo(129000, 6.5, 1031.03)
+    // The purpose of this function is to look at your monthly bill
+    // and determine when your last payment will be.
+    // We start at 360 months. Then we subtract a month and check again.
+    // When the payment calculated based on the duration is less than the original calculated payment
+    // well then it has to be darn close to the right number.
+    // TODO experiment with my bill and calculate how many payments remain.
+    // Realistically, there is a Schedule that will have a partial payment at the end
+    // if you have paid ahead *at all* (of course you can pay off a multiple amount and then still
+    // See the right value, but again, this should be able to calculate whole months, and then partial months)
+    period = 360
+    while (Finance.prototype.AM(balance, rate, period, 1) < payment){
+        period -= 1
+    }
+    
+    
+                      
+    // I could make this super complicated. And I might
+    // For example, to reach the *exact* payment of 1031.03 as I noted in the example above
+    // the total loan amount would need to be 129,128 to make exactly 210 payments.
+    // this means that the first 209 payments would be a full payment.
+    // The last payment will be a partial payment.
+    // I can probably take the periods of 209 and 210 and diff the total amount to pay.
+    // and well that is the final payment, but interest needs to be figured in to be fair
+    Balance_Remaining = balance - Finance.prototype.GetBasePaid(balance, rate, Finance.prototype.AM(balance, rate, period, 1))
+    period = period + 1
+    return {"months" : period,
+            "years" :
+                     {"years"  : Math.floor(period/12),
+                      "months" : Math.ceil(((period/12.0) - Math.floor(period/12))*12)
+                     },
+            "FinalMonthBalance" : Balance_Remaining }
+}
 
 // PMT calculates the payment for a loan based on constant payments and a constant interest rate
 Finance.prototype.PMT = function(fractionalRate, numOfPayments, principal) {
